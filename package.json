@@ -1,0 +1,26 @@
+{
+  "name": "beacon-lock",
+  "version": "1.0.0",
+  "description": "Lock your Mac/PC with a bluetooth beacon",
+  "main": "index.js",
+  "keywords": [
+    "bluetooth",
+    "BLE",
+    "bluetooth low energy",
+    "bluetooth smart",
+    "vuejs",
+    "vue",
+    "websockets"
+  ],
+  "dependencies": {
+    "noble": "^1.7.0",
+    "vue": "^2.1.10",
+    "ws": "^2.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vladislav Lewin",
+  "license": "ISC"
+}
