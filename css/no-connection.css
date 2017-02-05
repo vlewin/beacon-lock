@@ -1,0 +1,32 @@
+.flex-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 100%;
+  padding: 10px;
+}
+
+.centeredPromptIcon {
+  font-size: 60px;
+  line-height: 0;
+}
+
+.centeredPromptLabel {
+  color: #86969C;
+  font-size: 30px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.centeredPromptDetails {
+  color: #86969C;
+  font-size: 16px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.icon {
+  color: #86969C;
+}
