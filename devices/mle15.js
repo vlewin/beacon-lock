@@ -18,7 +18,7 @@ wss.on("connection", (ws) => {
 
    if (ws.readyState === ws.OPEN) {
      socket = ws
-     socket.send(JSON.stringify({ event: 'ready' }))
+    //  socket.send(JSON.stringify({ event: 'ready' }))
    }
 });
 
@@ -51,6 +51,8 @@ function discoverPeripherals(peripheral) {
 
   if (name === PERIPHERAL_NAME){
     console.log("Found my device", PERIPHERAL_NAME);
+
+    sendEvent({ event: 'connected', name: PERIPHERAL_NAME })
 
     // Stop scanning for other devices
     noble.stopScanning();
@@ -114,13 +116,14 @@ function updateRSSI(rssi_values, distance_values){
 }
 
 function disconnectPeripheral(){
-      console.log('peripheral disconneted');
+  console.log('peripheral disconneted');
+  sendEvent({ event: 'disconneted', name: PERIPHERAL_NAME })
 
-      //stop calling updateRSSI
-      clearInterval(updateRSSI);
+  //stop calling updateRSSI
+  clearInterval(updateRSSI);
 
-      //restart scan
-      noble.startScanning();
+  //restart scan
+  noble.startScanning();
 }
 
 // MATH HELPERS
@@ -144,18 +147,23 @@ function calculateAVG(rssi_values, distance_values) {
   avg_dist = avg(distance_values) / 100
 
   console.log(timestamp, "AVG RSSI: " + avg_rssi, 'AVG distance',  avg_dist, 'm');
-
-  if(socket) {
-    socket.send(JSON.stringify({
-      event: 'data',
-      timestamp: timestamp,
-      name: PERIPHERAL_NAME,
-      rssi: avg_rssi,
-      dist: avg_dist
-    }))
+  var event = {
+    event: 'data',
+    timestamp: timestamp,
+    name: PERIPHERAL_NAME,
+    rssi: avg_rssi,
+    dist: avg_dist
   }
+
+  sendEvent(event)
 }
 
 function distanceUnit(avg_dist) {
   return ((avg_dist / 100) > 1) ? 'm' : 'cm'
+}
+
+function sendEvent(event) {
+  if(socket) {
+    socket.send(JSON.stringify(event))
+  }
 }
