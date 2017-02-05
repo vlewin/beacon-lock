@@ -1,5 +1,7 @@
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
     <link href="https://fonts.googleapis.com/css?family=Montserrat|Raleway" rel="stylesheet">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <link href="./css/no-connection.css" rel="stylesheet">
@@ -44,12 +46,12 @@
     <div id="app">
       <div class="container" v-if="connected && peripheralConnected">
         <svg class="radar" width="100%" height="100%" viewbox="0 0 100 100" data-pct="100">
-          <circle cx="50" cy="50" r="20" v-bind:stroke="color" fill="transparent" />
+          <circle class="lock" cx="50" cy="50" r="20" v-bind:stroke="color" fill="transparent" />
           <circle class="signal" cx="50" cy="50" v-bind:r="signalRadius" fill="#555"  />
-          <text class="text" x="50%" y="45%" dy=".3em" fill="#555" font-size="5">
+          <text class="text" x="50%" y="45%" dy=".3em" fill="#555" font-size="0.37rem">
             {{ status }}
           </text>
-          <text class="text" x="50%" y="55%" dy=".3em" fill="#555" font-size="4">
+          <text class="text" x="50%" y="55%" dy=".3em" fill="#555" font-size="0.25rem">
             <template v-if="message">
               {{ message }}
             </template>
@@ -69,7 +71,7 @@
           <p>
             <label>LOCK RADIUS</label>
             <br>
-            <h2>{{ lockRadius }} m</h2>
+            <h2>{{ lockRadius }}</h2>
             <input type="range" v-model="lockRadius" min="0" max="100" step="10">
           </p>
         </div>
