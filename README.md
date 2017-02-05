@@ -18,6 +18,6 @@
 
 ### Screenshots
 TBD
-<!-- ![Alt text](https://github.com/vlewin/electron-tray-player/blob/master/images/Screenshot.png?raw=true "Optional Title") -->
+![Alt text](https://github.com/vlewin/beacon-lock/raw/master/screenshots/Locked.png?raw=true "Locked")
 
-<!-- ![Alt text](https://github.com/vlewin/electron-tray-player/blob/master/images/Screenshot2.png?raw=true "Optional Title") -->
+![Alt text](https://github.com/vlewin/beacon-lock/raw/master/screenshots/Unlocked.png?raw=true "Locked")
