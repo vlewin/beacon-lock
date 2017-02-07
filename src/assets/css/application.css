@@ -1,0 +1,33 @@
+body {
+  font-family: 'Montserrat', sans-serif;
+  /*font-family: 'Raleway', sans-serif;*/
+}
+
+.container {
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+}
+
+.signal {
+  opacity: 0.1;
+  transform: scale(1);
+  transform-origin: center;
+  transition-duration: 1.1s;
+}
+
+.text {
+  text-transform: uppercase;
+  text-anchor: middle;
+  /*font-size: 5px;*/
+}
+
+.info {
+  text-align: center;
+  height: 30%;
+  width: 100%;
+}

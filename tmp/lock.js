@@ -10,9 +10,9 @@
 //   console.log(error, stdout, stderr)
 // });
 
-var exec = require('child_process').exec;
-var cmd = '/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend';
+var exec = require('child_process').exec
+var cmd = '/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend'
 
-exec(cmd, function(error, stdout, stderr) {
+exec(cmd, function (error, stdout, stderr) {
   console.log(error, stdout, stderr)
-});
+})

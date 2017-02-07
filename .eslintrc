@@ -1,0 +1,21 @@
+{
+  "ecmaFeatures": {
+      "jsx": true
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  },
+
+  "root": true,
+  "parser": "babel-eslint",
+  "extends": "vue",
+  "globals": {
+    "__WEEX__": true
+  },
+  "rules": {
+    "no-useless-escape": 0,
+    "dot-notation": 2
+
+  }
+}
