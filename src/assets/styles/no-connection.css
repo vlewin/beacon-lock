@@ -11,22 +11,23 @@
 .centeredPromptIcon {
   font-size: 60px;
   line-height: 0;
+  text-align: center;
 }
 
 .centeredPromptLabel {
-  color: #86969C;
+  color: #666;
   font-size: 30px;
   font-weight: 700;
   text-align: center;
 }
 
 .centeredPromptDetails {
-  color: #86969C;
+  color: #999;
   font-size: 16px;
   margin-bottom: 10px;
   text-align: center;
 }
 
 .icon {
-  color: #86969C;
+  color: #999;
 }

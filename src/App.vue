@@ -1,7 +1,18 @@
 <template>
   <div id="app">
-    <calibration></calibration>
-    <div class="container" v-if="connected && peripheralConnected">
+    <div class="flex-container" v-if="!connected">
+      <no-backend-service></no-backend-service>
+    </div>
+
+    <div class="flex-container" v-if="connected && !peripheralConnected">
+      <no-peripherial></no-peripherial>
+    </div>
+
+    <div class="flex-container" v-if="connected && peripheralConnected && !calibrated">
+      <calibration></calibration>
+    </div>
+
+    <div class="container" v-if="connected && peripheralConnected && calibrated">
       <svg class="radar" width="100%" height="100%" viewbox="0 0 100 100" data-pct="100">
         <circle class="lock" cx="50" cy="50" r="20" v-bind:stroke="color" fill="transparent" />
         <circle class="signal" cx="50" cy="50" v-bind:r="signalRadius" fill="#555"  />
@@ -33,36 +44,20 @@
         </p>
       </div>
     </div>
-
-    <div class="flex-container" v-if="!connected">
-      <div class="centeredPromptIcon">
-        <div class="icon fa fa-frown-o"></div>
-      </div>
-      <div class="centeredPromptLabel">Connection to backend service is lost!</div>
-      <div class="centeredPromptDetails">
-        Ensure bluetooth <i class="fa fa-bluetooth"></i> is on.
-        Try to retart the 'beacon-lock' app.
-      </div>
-    </div>
-
-    <div class="flex-container" v-if="connected && !peripheralConnected">
-      <div class="centeredPromptIcon">
-        <div class="icon fa fa-spin fa-circle-o-notch" aria-hidden="true"></div>
-      </div>
-      <div class="centeredPromptLabel">Looking for peripheral ...</div>
-      <div class="centeredPromptDetails">
-        Ensure bluetooth <i class="fa fa-bluetooth"></i> and device <i class="fa fa-tag" aria-hidden="true"></i> is on.
-        <!-- <a href="https://github.com/vlewin/beacon-lock/issues">Let me know!</a> -->
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
+  import NoBackendService from './components/NoBackendService.vue'
+  import NoPeripherial from './components/NoPeripherial.vue'
   import Calibration from './components/Calibration.vue'
+  import { ws } from './main.js'
+
   export default {
     name: 'App',
     components: {
+      NoBackendService,
+      NoPeripherial,
       Calibration
     },
 
@@ -71,6 +66,7 @@
         connected: false,
         peripheralConnected: false,
         peripheralName: null,
+        calibrated: true,
         rssi: 0,
         dist: 'N/A',
         delay: 5,
@@ -167,7 +163,6 @@
 
       connect () {
         const _this = this
-        var ws = new WebSocket('ws://localhost:2222')
 
         ws.onopen = function () {
           _this.connected = true

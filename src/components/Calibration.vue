@@ -11,10 +11,12 @@
         </div>
         <div>
           <h2>CALIBRATING ...</h2>
+          <h4>CURRENT RSSI: {{ rssi }} <br /> AVG {{ average }}</h4>
         </div>
       </div>
       <div class="content-bottom">
-        <div class="beacon">BEACON</div>
+        <div v-if="running" class="beacon" v-on:click="stop">STOP</div>
+        <div v-else="running" class="beacon" v-on:click="start">START</div>
       </div>
     </div>
 
@@ -22,65 +24,75 @@
 
 </template>
 
-<style>
-.grey-text {
-  color: #aaa;
-}
 
-#calibration {
-  display: flex;
-  /* align-items: center; */
-  flex-direction: column;
-  /* justify-content: center; */
-  height: 100%;
-}
+<script>
+  import { ws } from '../main.js'
 
-.device {
-  align-self: flex-start;
-  justify-content: center;
-  width: 100%;
-  display: flex;
-  height: 50%;
-  text-align: center;
-}
+  export default {
+    name: 'Calibration',
+    data () {
+      return {
+        running: false,
+        values: [],
+        rssi: 0,
+        distance: null,
+      }
+    },
 
-.content{
-  align-self: center;
-  justify-content: flex-end;
-  height: 50%;
-  width: 100%;
-  flex-direction: column;
-  display: flex;
-}
+    created () {
+      // this.connect()
+    },
 
-.content-top {
-  height: 50%;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-  justify-content: center;
-}
+    mounted () {
+    },
 
-.content-top div {
-  height: 50%;
-}
+    computed: {
+      average: function() {
+        if(this.values.length) {
+          return Math.round(this.values.reduce(function(prev, next) { return prev + next  }) / this.values.length)
+        }
 
-.content-bottom  {
-  height: 50%;
-  display: flex;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-  justify-content: center;
-}
+        return 'N/A'
+      },
 
-div.beacon {
-  height: 100px;
-  width: 100px;
-  line-height: 100px;
-  border: 2px solid grey;
-  text-align: center;
-  border-radius: 100%;
-}
+      text: function () {
+        return this.signal > this.lockRadius ? 'LOCKED' : 'UNLOCKED'
+      }
+    },
 
-</style>
+    watch: {
+      rssi: function (val) {
+        console.log('RSSI: ', this.rssi, 'distance', this.distance)
+      }
+    },
+
+    methods: {
+      start() {
+        const _this = this
+        this.running = true
+
+        ws.send(JSON.stringify({ event: 'calibrationn_start' }));
+
+        ws.onmessage = function (event) {
+          var data = JSON.parse(event.data)
+          if (data.event === 'connected') {
+            console.info('peripheral', data.name, 'connected')
+          } else if (data.event === 'data') {
+            console.log(data)
+            _this.rssi = data.rssi
+            _this.values.push(_this.rssi)
+          } else if (data.event === 'disconneted') {
+            console.info('peripheral', data.name, 'disconneted')
+          } else {
+            console.warn('Unknown event', data)
+          }
+        }
+      },
+
+      stop() {
+        this.running = false
+        ws.close()
+      }
+    }
+  }
+</script>

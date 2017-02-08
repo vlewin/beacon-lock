@@ -19,6 +19,17 @@ wss.on('connection', (ws) => {
   if (ws.readyState === ws.OPEN) {
     socket = ws
     //  socket.send(JSON.stringify({ event: 'ready' }))
+
+    ws.on('message', function (event) {
+      var data = JSON.parse(event)
+      if (data.event === 'calibrationn_start') {
+        console.log('start calibration')
+      } else if (data.event === 'disconneted') {
+
+      } else {
+        console.warn('Unknown event', data)
+      }
+    })
   }
 })
 
@@ -133,10 +144,7 @@ function disconnectPeripheral () {
 // MATH HELPERS
 function avg (values) {
   if (values.length) {
-    const sum = values.reduce(function (previous, current) {
-      current += previous
-    })
-
+    const sum = values.reduce(function (prev, next) { return prev + next })
     return parseInt(sum / values.length)
   }
 }
