@@ -6,6 +6,11 @@ module.exports = {
     filename: 'build.js'
   },
 
+  build: {
+    assetsPublicPath: '/assets',
+    assetsSubDirectory: '../src/assets'
+  },
+
   resolve: { alias: { vue: 'vue/dist/vue.js' }},
   module: {
     loaders: [
@@ -25,11 +30,14 @@ module.exports = {
       },
       {
         // edit this for additional asset file types
-        test: /\.(png|jpg|gif)$/,
-        loader: 'url',
+        test: /\.(png|jpg|gif|svg)$/,
+        // NOTE: Inside bundle.js
+        // loader: 'url',
+        // NOTE: Extra file
+        loader: 'file',
         query: {
           // inline files smaller then 10kb as base64 dataURL
-          limit: 10000,
+          limit: 5000,
           // fallback to file-loader with this naming scheme
           name: '[name].[ext]?[hash]'
         }

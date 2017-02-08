@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div id="app">
+    <calibration></calibration>
     <div class="container" v-if="connected && peripheralConnected">
       <svg class="radar" width="100%" height="100%" viewbox="0 0 100 100" data-pct="100">
         <circle class="lock" cx="50" cy="50" r="20" v-bind:stroke="color" fill="transparent" />
@@ -58,8 +59,13 @@
 </template>
 
 <script>
+  import Calibration from './components/Calibration.vue'
   export default {
     name: 'App',
+    components: {
+      Calibration
+    },
+
     data () {
       return {
         connected: false,
