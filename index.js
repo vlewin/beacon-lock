@@ -4,7 +4,7 @@ var myPeripheral
 
 const PERIPHERAL_NAME = 'MLE-15'
 const TX_POWER = 20
-const SCAN_WINDOW = 2000
+const SCAN_WINDOW = 1000
 const SAMPLING_RATE = 250
 const DEBUG = false
 

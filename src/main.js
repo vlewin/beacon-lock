@@ -12,8 +12,6 @@ require('./assets/styles/calibration.css')
 //   components: { App }
 // })
 
-export const ws = new WebSocket('ws://localhost:2222')
-
 new Vue({
   render: h => h(App)
 }).$mount('app')

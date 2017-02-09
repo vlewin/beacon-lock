@@ -9,13 +9,16 @@
     </div>
 
     <div class="flex-container" v-if="connected && peripheralConnected && !calibrated">
-      <calibration></calibration>
+      <!-- <calibration></calibration> -->
     </div>
 
+
     <div class="container" v-if="connected && peripheralConnected && calibrated">
-      <svg class="radar" width="100%" height="100%" viewbox="0 0 100 100" data-pct="100">
-        <circle class="lock" cx="50" cy="50" r="20" v-bind:stroke="color" fill="transparent" />
-        <circle class="signal" cx="50" cy="50" v-bind:r="signalRadius" fill="#555"  />
+      <svg class="radar" width="100%" height="100%" viewBox="0 0 100 100">
+        <circle class="lock" cx="50" cy="50" v-bind:r="lockRadius" stroke="#666" stroke-dasharray="2" stroke-width="0.25" fill="transparent" />
+
+        <circle class="lock" cx="50" cy="50" r="20" v-bind:stroke="color" stroke-width="0.75" fill="transparent" />
+        <circle class="signal" cx="50" cy="50" v-bind:r="signal" fill="#555"  />
         <text class="text" x="50%" y="45%" dy=".3em" fill="#555" font-size="0.37rem">
           {{ status }}
         </text>
@@ -31,16 +34,16 @@
 
       <div class="info">
         <p>
-          <label>ESTIMATED DISTANCE</label>
+          <label>RSSI (ESTIMATED DISTANCE)</label>
           <br>
-          <h2>{{ dist }} m</h2>
+          <h2>{{ rssi }} ({{ dist }}m)</h2>
         </p>
 
         <p>
           <label>LOCK RADIUS</label>
           <br>
           <h2>{{ lockRadius }}</h2>
-          <input type="range" v-model="lockRadius" min="0" max="100" step="10">
+          <input type="range" v-model="lockRadius" min="20" max="100" step="10">
         </p>
       </div>
     </div>
@@ -51,7 +54,7 @@
   import NoBackendService from './components/NoBackendService.vue'
   import NoPeripherial from './components/NoPeripherial.vue'
   import Calibration from './components/Calibration.vue'
-  import { ws } from './main.js'
+  // import { ws } from './main.js'
 
   export default {
     name: 'App',
@@ -63,6 +66,7 @@
 
     data () {
       return {
+        socket: null,
         connected: false,
         peripheralConnected: false,
         peripheralName: null,
@@ -73,7 +77,7 @@
         message: null,
         lockTimeout: null,
         lockCountDown: null,
-        lockRadius: 45,
+        lockRadius: 50,
         status: 'unlocked'
       }
     },
@@ -87,11 +91,11 @@
 
     computed: {
       text: function () {
-        return this.signal > this.lockRadius ? 'LOCKED' : 'UNLOCKED'
+        return this.signal >= this.lockRadius ? 'LOCKED' : 'UNLOCKED'
       },
 
       color: function () {
-        return this.signal > this.lockRadius ? '#ff5252' : '#42b983'
+        return this.signal >= this.lockRadius ? '#ff5252' : '#42b983'
       },
 
       signal: function () {
@@ -99,10 +103,10 @@
       },
 
       signalRadius: function () {
-        return this.signal / 2
+        return this.signal
       },
 
-      radius: function () {
+      visibleRadius: function () {
         return this.lockRadius / 2
       },
 
@@ -120,7 +124,7 @@
         console.log('Status: ', this.status, 'signal', this.signal, 'lockRadius', this.lockRadius)
         if (this.unlocked && (this.signal >= this.lockRadius)) {
           this.lock()
-        } else if (this.locked && (this.signal < this.lockRadius)) {
+        } else if (!this.unlocked && (this.signal < this.lockRadius)) {
           console.info('Beacon nearby - Unlock and clear timeout and countdown')
           this.reset()
         }
@@ -162,15 +166,18 @@
       },
 
       connect () {
+        console.log('CONNECT')
         const _this = this
 
-        ws.onopen = function () {
+        this.socket = new WebSocket('ws://localhost:2222')
+
+        this.socket.onopen = function () {
           _this.connected = true
-          // ws.send("Message to send");
-          // console.log("Message is sent...");
+          // this.socket.send("Message to send");
+          console.log('Socket open');
         }
 
-        ws.onmessage = function (event) {
+        this.socket.onmessage = function (event) {
           var data = JSON.parse(event.data)
           if (data.event === 'connected') {
             console.info('peripheral', data.name, 'connected')
@@ -190,7 +197,7 @@
           }
         }
 
-        ws.onclose = function (e) {
+        this.socket.onclose = function (e) {
           _this.connected = false
 
           console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason)
@@ -199,9 +206,9 @@
           }, 1000)
         }
 
-        ws.onerror = function (err) {
+        this.socket.onerror = function (err) {
           console.error('Socket encountered error: ', err.message, 'Closing socket')
-          ws.close()
+          _this.socket.close()
         }
       }
     }
