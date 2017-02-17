@@ -1,8 +1,8 @@
 <template>
   <div id="error">
-    OFF {{ off }}
-    DISCONNECTED {{ disconnected }}
-    <div id="no-backend-service" v-if="off">
+    ON {{ on }}
+    CONNECTED {{ connected }}
+    <div id="no-backend-service" v-if="!on">
       <div class="centeredPromptIcon">
         <div class="icon fa fa-frown-o"></div>
       </div>
@@ -13,7 +13,7 @@
       </div>
     </div>
 
-    <div id="no-peripheral" v-if="on && disconnected">
+    <div id="no-peripheral" v-if="on && !connected">
       <div class="centeredPromptIcon">
         <div class="icon fa fa-spin fa-circle-o-notch" aria-hidden="true"></div>
       </div>

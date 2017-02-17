@@ -14,7 +14,7 @@
             {{ message }}
           </template>
           <template v-else>
-            RSSI: {{ rssi }} dB
+            RSSI: {{ rssi }}
           </template>
         </text>
       </svg>
@@ -32,7 +32,6 @@
             {{ lockRadius }}
             <input type="range" v-model="lockRadius" min="20" max="100" step="10">
           </h2>
-          <router-link to="/calibration">Calibration</router-link>
         </p>
       </div>
     </div>
@@ -40,17 +39,8 @@
 </template>
 
 <script>
-  import NoBackendService from './NoBackendService.vue'
-  import NoPeripherial from './NoPeripherial.vue'
-  // import { ws } from './main.js'
-
   export default {
     name: 'Lock',
-    components: {
-      NoBackendService,
-      NoPeripherial
-    },
-
     data () {
       return {
         dist: 'N/A',
@@ -58,7 +48,6 @@
         message: null,
         lockTimeout: null,
         lockCountDown: null,
-        lockRadius: 60,
         status: 'unlocked'
       }
     },
@@ -93,6 +82,11 @@
 
       signal: function () {
         return this.$store.state.rssi * -1
+      },
+
+      lockRadius() {
+        console.log(this.$store.state.radius)
+        return this.$store.state.radius * -1
       },
 
       signalRadius: function () {
@@ -156,54 +150,7 @@
 
         clearTimeout(this.lockTimeout)
         clearTimeout(this.lockCountDown)
-      },
-
-      // connect () {
-      //   console.log('CONNECT')
-      //   const _this = this
-      //
-      //   this.socket = new WebSocket('ws://localhost:2222')
-      //
-      //   this.socket.onopen = function () {
-      //     _this.connected = true
-      //     // this.socket.send("Message to send");
-      //     console.log('Socket open');
-      //   }
-      //
-      //   this.socket.onmessage = function (event) {
-      //     var data = JSON.parse(event.data)
-      //     if (data.event === 'connected') {
-      //       console.info('peripheral', data.name, 'connected')
-      //       _this.peripheralName = data.name
-      //       _this.peripheralConnected = true
-      //     } else if (data.event === 'data') {
-      //       _this.peripheralConnected = true
-      //       // console.log(data.timestamp, 'name', data.name, 'RSSI:', data.rssi, 'DIST:', data.dist)
-      //       _this.rssi = data.rssi
-      //       _this.dist = data.dist
-      //     } else if (data.event === 'disconneted') {
-      //       console.info('peripheral', data.name, 'disconneted')
-      //       _this.peripheralName = data.name
-      //       _this.peripheralConnected = false
-      //     } else {
-      //       console.warn('Unknown event', data)
-      //     }
-      //   }
-      //
-      //   this.socket.onclose = function (e) {
-      //     _this.connected = false
-      //
-      //     console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason)
-      //     setTimeout(function () {
-      //       _this.connect()
-      //     }, 1000)
-      //   }
-      //
-      //   this.socket.onerror = function (err) {
-      //     console.error('Socket encountered error: ', err.message, 'Closing socket')
-      //     _this.socket.close()
-      //   }
-      // }
+      }
     }
   }
 </script>

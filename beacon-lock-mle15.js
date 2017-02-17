@@ -2,6 +2,7 @@ var noble = require('noble')
 
 const WebSocketServer = require('ws').Server
 const wss = new WebSocketServer({ port: 2222 })
+
 // const PERIPHERAL_NAME = 'BeaconLock00001'
 const PERIPHERAL_NAME = 'MLE-15'
 
@@ -62,8 +63,9 @@ function connect () {
       console.log('-- Reconnect in 1 second')
       setTimeout(function () {
         console.log('--- Auto reconnect')
-        connect()
-      }, 1000)
+        // FIXME: Reconnect not working properly
+        // connect()
+      }, 500)
 
       // console.log('-- Start scanning ???')
       // noble.startScanning()
@@ -108,13 +110,15 @@ noble.on('discover', function (peripheral) {
     beacon = peripheral
 
     console.log('Device connected?', connected, beacon.uuid)
-    console.log('Socket?', socket.readyState)
 
     if (socket) {
+      console.log('--- Send connected event')
       socket.send(JSON.stringify({
         event: 'connected',
         name: PERIPHERAL_NAME
       }))
+    } else {
+      console.log('WARN: No socket, wait ...')
     }
     // const index = 0
     // if (!connected) {
@@ -128,13 +132,15 @@ noble.on('discover', function (peripheral) {
 
     if (!connected) {
       interval = setInterval(function () {
-        peripheral.updateRssi(function (err, rssi) {
-          if (err) {
-            clearInterval(interval)
-          } else {
-            rssiValues.push(rssi)
-          }
-        })
+        peripheral.updateRssi()
+
+        // peripheral.updateRssi(function (err, rssi) {
+        //   if (err) {
+        //     clearInterval(interval)
+        //   } else {
+        //     rssiValues.push(rssi)
+        //   }
+        // })
       }, 500)
     }
 

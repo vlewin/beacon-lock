@@ -6,26 +6,28 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    socket: null,
     on: false,
-    reconnectInterval: null,
     connected: false,
+    socket: null,
+    reconnectInterval: null,
+    calibrated: false,
+    radius: -65,
     rssi: 0,
     accuracy: 0,
     proximity: 'N/A'
   },
 
   actions: {
-    connect: () => {
+    connect: ({ commit, dispatch }) => {
       console.log('ACTIONS: connect')
       const socket = new WebSocket('ws://localhost:2222')
 
-      store.commit('SET_SOCKET', socket)
+      commit('SET_SOCKET', socket)
 
       socket.onopen = () => {
         // this.socket.send("Message to send");
         console.log('Socket open')
-        store.commit('ON')
+        commit('ON')
         router.push('/')
       }
 
@@ -33,21 +35,18 @@ const store = new Vuex.Store({
         var data = JSON.parse(event.data)
         if (data.event === 'connected') {
           console.info('peripheral', data.name, 'connected')
-          store.commit('CONNECTED')
-          router.push({ path: '/lock' })
+          commit('CONNECTED')
+          router.push('/lock')
         } else if (data.event === 'disconnected') {
           console.info('peripheral', data.name, 'disconnected')
-          store.commit('DISCONNECTED')
-          router.push({ path: '/' })
+          commit('DISCONNECTED')
+          router.push('/')
         } else if (data.event === 'data') {
           // console.log(JSON.stringify(data))
-          // store.commit('CONNECTED')
-          store.commit('SET_RSSI', data.rssi)
-          store.commit('SET_ACCURACY', data.accuracy)
-          store.commit('SET_PROXIMITY', data.proximity)
-        } else if (data.event === 'test') {
-          // _this.peripheralName = data.name
-          // _this.peripheralConnected = false
+          // commit('CONNECTED')
+          commit('SET_RSSI', data.rssi)
+          commit('SET_ACCURACY', data.accuracy)
+          commit('SET_PROXIMITY', data.proximity)
         } else {
           console.warn('Unknown event', data)
         }
@@ -55,27 +54,39 @@ const store = new Vuex.Store({
 
       socket.onerror = () => {
         console.log('Socket closed')
-        store.commit('OFF')
-        store.commit('DISCONNECTED')
+        commit('OFF')
+        commit('DISCONNECTED')
 
-        router.push({ path: '/' })
+        router.push('/')
 
         setTimeout(function () {
-          store.dispatch('connect')
+          dispatch('connect')
         }, 3000)
       }
 
       socket.onclose = () => {
         console.log('Socket closed')
-        store.commit('OFF')
-        store.commit('DISCONNECTED')
+        commit('OFF')
+        commit('DISCONNECTED')
 
-        router.push({ path: '/' })
+        router.push('/')
 
+        console.log('reconnect in 3 seconds')
         setTimeout(function () {
-          store.dispatch('connect')
+          dispatch('connect')
         }, 3000)
       }
+    },
+
+    setCalibrated ({ commit }, value) {
+      console.log('calibrated', value)
+
+      commit('SET_CALIBRATED', value)
+    },
+
+    setRadius ({ commit }, radius) {
+      console.log('radius', radius)
+      commit('SET_RADIUS', radius)
     }
   },
 
@@ -104,6 +115,22 @@ const store = new Vuex.Store({
 
     RESET_SOCKET: (state) => {
       Vue.set(state, 'socket', null)
+    },
+
+    SET_CALIBRATED: (state, value) => {
+      Vue.set(state, 'calibrated', value)
+    },
+
+    // RESET_CALIBRATED: (state) => {
+    //   Vue.set(state, 'calibrated', false)
+    // },
+
+    SET_RADIUS: (state, value) => {
+      Vue.set(state, 'radius', value)
+    },
+
+    RESET_RADIUS: (state) => {
+      Vue.set(state, 'radius', null)
     },
 
     SET_RSSI: (state, rssi) => {

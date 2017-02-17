@@ -8,15 +8,21 @@
       <div class="content-top">
         <div class="grey-text">
           POSITION YOUR BEACON IN THE 'UNLOCK' ZONE
+          NOW MOVE TO 'LOCK' ZONE AND STAY THERE FOR 5 SECONDS
         </div>
         <div v-if="running">
-          <h2>CALIBRATING ...</h2>
-          <h4>CURRENT RSSI: {{ rssi }} <br /> AVG {{ average }}</h4>
+          <h3>CALIBRATING ...</h3>
+          <h2>CURRENT RSSI: {{ rssi }} <br /> AVG RSSI {{ average }}</h2>
+        </div>
+
+        <div v-if="calibrated">
+          <h3>RECOMMENDED LOCK RADIUS</h3>
+          <h2>{{ radius }}</h2>
         </div>
       </div>
       <div class="content-bottom">
-        <div v-if="running" class="beacon" v-on:click="stop">STOP</div>
-        <div v-else="running" class="beacon" v-on:click="start">START</div>
+        <div v-if="running" class="beacon" v-on:click="stop">WAIT ...</div>
+        <div v-else class="beacon" v-on:click="start">START</div>
       </div>
     </div>
 
@@ -32,10 +38,12 @@
     name: 'Calibration',
     data () {
       return {
+        socket: null,
         running: false,
         values: [],
         rssi: 0,
-        distance: null,
+        accuracy: null,
+        radius: null
       }
     },
 
@@ -47,8 +55,8 @@
     },
 
     computed: {
-      socket() {
-        return this.$store.state.socket
+      calibrated() {
+        return this.$store.state.calibrated
       },
 
       average: function() {
@@ -66,7 +74,7 @@
 
     watch: {
       rssi: function (val) {
-        console.log('RSSI: ', this.rssi, 'distance', this.distance)
+        console.log('RSSI: ', this.rssi, 'accuracy', this.accuracy)
       }
     },
 
@@ -74,25 +82,38 @@
       start() {
         const _this = this
         this.running = true
+        this.$store.dispatch('setCalibrated', false)
 
-        this.socket.onmessage = function (event) {
-          var data = JSON.parse(event.data)
-          if (data.event === 'data') {
-            console.log(data)
-            _this.rssi = data.rssi
-            _this.values.push(_this.rssi)
-          } else if (data.event === 'disconneted') {
-            _this.stop()
-          } else {
-            console.warn('Unknown event', data)
-          }
-        }
+        let interval = setInterval(function() {
+          _this.rssi = _this.$store.state.rssi
+          _this.accuracy = _this.$store.state.accuracy
+          _this.values.push(_this.rssi)
+        }, 500)
+
+        setTimeout(function() {
+          clearInterval(interval)
+          _this.stop()
+        }, 5000)
+
       },
 
       stop() {
-        this.values = []
+        let _this = this
+
         this.running = false
-        this.socket.close()
+        this.radius = this.average + -10
+        this.values = []
+
+        this.$store.dispatch('setRadius', this.radius)
+        this.$store.dispatch('setCalibrated', true)
+        this.redirect()
+      },
+
+      redirect() {
+        let _this = this
+        setTimeout(function() {
+          _this.$router.push('lock')
+        }, 3000)
       }
     }
   }
