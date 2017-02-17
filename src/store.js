@@ -8,6 +8,7 @@ const store = new Vuex.Store({
   state: {
     on: false,
     connected: false,
+    locked: false,
     socket: null,
     reconnectInterval: null,
     calibrated: false,
@@ -78,6 +79,12 @@ const store = new Vuex.Store({
       }
     },
 
+    lock ({ commit, state }, locked) {
+      state.socket.send('lock')
+
+      commit('SET_LOCKED', true)
+    },
+
     setCalibrated ({ commit }, value) {
       console.log('calibrated', value)
 
@@ -115,6 +122,10 @@ const store = new Vuex.Store({
 
     RESET_SOCKET: (state) => {
       Vue.set(state, 'socket', null)
+    },
+
+    SET_LOCKED: (state, value) => {
+      Vue.set(state, 'locked', true)
     },
 
     SET_CALIBRATED: (state, value) => {

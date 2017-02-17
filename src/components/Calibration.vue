@@ -8,7 +8,7 @@
       <div class="content-top">
         <div class="grey-text">
           POSITION YOUR BEACON IN THE 'UNLOCK' ZONE
-          NOW MOVE TO 'LOCK' ZONE AND STAY THERE FOR 5 SECONDS
+          <!-- NOW MOVE TO 'LOCK' ZONE AND STAY THERE FOR 5 SECONDS -->
         </div>
         <div v-if="running">
           <h3>CALIBRATING ...</h3>
@@ -23,6 +23,9 @@
       <div class="content-bottom">
         <div v-if="running" class="beacon" v-on:click="stop">WAIT ...</div>
         <div v-else class="beacon" v-on:click="start">START</div>
+
+        <a href="#" class="beacon" v-on:click.stop.prevent="lock">LOCK</div>
+
       </div>
     </div>
 
@@ -114,6 +117,10 @@
         setTimeout(function() {
           _this.$router.push('lock')
         }, 3000)
+      },
+
+      lock() {
+        this.$store.dispatch('lock')
       }
     }
   }

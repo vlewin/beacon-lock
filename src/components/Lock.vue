@@ -128,6 +128,7 @@
 
         this.lockTimeout = setTimeout(function () {
           console.log('Lock my Mac')
+          _this.$store.dispatch('lock')
           _this.status = 'locked'
         }, 5000)
       },

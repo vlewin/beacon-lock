@@ -16,21 +16,6 @@ let socket = null
 let interval = null
 let connected = false
 
-function reset () {
-  console.log('-- Clear interval')
-  clearInterval(interval)
-
-  if (beacon) {
-    console.log('-- Disconnect beacon', beacon.uuid)
-    beacon.disconnect()
-  } else {
-    console.log('-- WARN: no beacon connected ???')
-  }
-
-  console.log('-- Reset flags: beacon, socket and interval')
-  socket = interval = beacon = null
-}
-
 function connect () {
   wss.on('connection', (ws) => {
     console.info('WS: Connection OPEN')
@@ -55,6 +40,13 @@ function connect () {
     //   ws.send(JSON.stringify(process.memoryUsage()), function () { /* ignore errors */ })
     // }, 100)
 
+    ws.on('message', function (action) {
+      if (action === 'lock') {
+        console.log('LOCK MY MAC')
+        lock()
+      }
+    })
+
     ws.on('close', function () {
       console.log('WS: Connection CLOSED')
 
@@ -71,6 +63,33 @@ function connect () {
       // noble.startScanning()
     })
   })
+}
+
+function reset () {
+  console.log('-- Clear interval')
+  clearInterval(interval)
+
+  if (beacon) {
+    console.log('-- Disconnect beacon', beacon.uuid)
+    beacon.disconnect()
+  } else {
+    console.log('-- WARN: no beacon connected ???')
+  }
+
+  console.log('-- Reset flags: beacon, socket and interval')
+  socket = interval = beacon = null
+}
+
+function lock () {
+  reset()
+  var exec = require('child_process').exec
+  var cmd = '/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+
+  setTimeout(function () {
+    exec(cmd, function (error, stdout, stderr) {
+      console.log(error, stdout, stderr)
+    })
+  }, 2000)
 }
 
 noble.on('stateChange', function (state) {
@@ -164,7 +183,7 @@ noble.on('discover', function (peripheral) {
 
     console.log('-- Peripheral auto reconnect in 1 second')
     setTimeout(function () {
-      peripheral.connect()
+      // peripheral.connect()
       // noble.startScanning()
     }, 1000)
   })
