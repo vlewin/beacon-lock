@@ -9,11 +9,15 @@
     "build": "webpack --progress --hide-modules --config build/webpack.prod.config.js"
   },
   "dependencies": {
-    "noble": "^1.7.0",
+    "async": "^2.1.4",
+    "minew-minibeacon": "^1.0.0",
+    "noble": "^1.8.0",
     "noble-device": "^1.4.1",
     "nodemon": "^1.11.0",
     "vue": "^2.1.10",
-    "ws": "^2.0.2"
+    "vue-router": "^2.2.0",
+    "vuex": "^2.1.2",
+    "ws": "^2.0.3"
   },
   "devDependencies": {
     "babel-core": "^6.1.2",

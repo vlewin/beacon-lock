@@ -2,16 +2,20 @@ var noble = require('noble')   // noble library
 
 var myPeripheral
 
+// const PERIPHERAL_NAME = 'BeaconLock00001'
 const PERIPHERAL_NAME = 'MLE-15'
+
 const TX_POWER = 20
 const SCAN_WINDOW = 1000
-const SAMPLING_RATE = 250
+const SAMPLING_RATE = 500
 const DEBUG = false
 
 const WebSocketServer = require('ws').Server
 const wss = new WebSocketServer({ port: 2222 })
 
 let socket = null
+let rssiValues = []
+let distanceValues = []
 
 wss.on('connection', (ws) => {
   console.info('websocket connection open')
@@ -73,7 +77,7 @@ function discoverPeripherals (peripheral) {
     // Connect to peripheral
     peripheral.connect(explorePeripheral)
   } else {
-    console.log('Found a different device:', name, 'with UUID ', peripheral.uuid)
+    console.log('Found different device:', name, 'with UUID ', peripheral.uuid)
   }
 };
 
@@ -85,8 +89,6 @@ function explorePeripheral (error) {
 
   console.log('Connected to ' + myPeripheral.advertisement.localName)
   var scanInterval = null
-  let rssiValues = []
-  let distanceValues = []
 
   // console log signal strengh every second
   setInterval(function () {
