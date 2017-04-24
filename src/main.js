@@ -8,6 +8,7 @@ require('./assets/styles/application.css')
 require('./assets/styles/helpers.css')
 require('./assets/styles/no-connection.css')
 require('./assets/styles/calibration.css')
+require('./assets/styles/range.css')
 
 /* eslint-disable no-new */
 // new Vue({

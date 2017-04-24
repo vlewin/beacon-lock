@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import router from './router'
+// import router from './router'
 
 Vue.use(Vuex)
 
@@ -15,7 +15,9 @@ const store = new Vuex.Store({
     radius: -65,
     rssi: 0,
     accuracy: 0,
-    proximity: 'N/A'
+    event: null,
+    proximity: 'N/A',
+    status: 'N/A'
   },
 
   actions: {
@@ -29,25 +31,39 @@ const store = new Vuex.Store({
         // this.socket.send("Message to send");
         console.log('Socket open')
         commit('ON')
-        router.push('/')
+        // router.push('/')
       }
 
       socket.onmessage = (event) => {
         var data = JSON.parse(event.data)
-        if (data.event === 'connected') {
-          console.info('peripheral', data.name, 'connected')
+        if (['connected', 'entered'].includes(data.event)) {
+          console.info('peripheral', data.name, data.event)
           commit('CONNECTED')
-          router.push('/lock')
-        } else if (data.event === 'disconnected') {
-          console.info('peripheral', data.name, 'disconnected')
+          commit('SET_STATUS', 'entered')
+
+          // router.push('/lock')
+        } else if (['disconnected', 'exited'].includes(data.event)) {
+          console.info('peripheral', data.name, data.event)
           commit('DISCONNECTED')
-          router.push('/')
+          commit('SET_STATUS', 'exited')
+
+          // router.push('/')
         } else if (data.event === 'data') {
-          // console.log(JSON.stringify(data))
+          console.log(JSON.stringify(data))
           // commit('CONNECTED')
+
+          // commit('CONNECTED')
+          commit('SET_EVENT', data)
           commit('SET_RSSI', data.rssi)
-          commit('SET_ACCURACY', data.accuracy)
-          commit('SET_PROXIMITY', data.proximity)
+          // commit('SET_ACCURACY', data.accuracy)
+          // commit('SET_PROXIMITY', data.proximity)
+        } else if (data.event === 'locked') {
+          commit('SET_STATUS', 'locked')
+        } else if (data.event === 'countdown') {
+          console.log(JSON.stringify(data))
+          commit('SET_STATUS', 'LOCK IN ' + data.value)
+          // commit('SET_ACCURACY', data.accuracy)
+          // commit('SET_PROXIMITY', data.proximity)
         } else {
           console.warn('Unknown event', data)
         }
@@ -58,7 +74,7 @@ const store = new Vuex.Store({
         commit('OFF')
         commit('DISCONNECTED')
 
-        router.push('/')
+        // router.push('/')
 
         setTimeout(function () {
           dispatch('connect')
@@ -70,19 +86,24 @@ const store = new Vuex.Store({
         commit('OFF')
         commit('DISCONNECTED')
 
-        router.push('/')
+        // router.push('/')
 
         console.log('reconnect in 3 seconds')
         setTimeout(function () {
-          dispatch('connect')
+          // dispatch('connect')
         }, 3000)
       }
     },
 
-    lock ({ commit, state }, locked) {
-      state.socket.send('lock')
+    lock ({ commit, state }) {
+      state.socket.send(JSON.stringify({ action: 'lock' }))
+      console.log('SEND LOCK')
 
       commit('SET_LOCKED', true)
+    },
+
+    setRssiTreshold ({ commit, state }, value) {
+      state.socket.send(JSON.stringify({ action: 'SET_RSSI_THRESHOLD', value: value }))
     },
 
     setCalibrated ({ commit }, value) {
@@ -124,6 +145,10 @@ const store = new Vuex.Store({
       Vue.set(state, 'socket', null)
     },
 
+    SET_STATUS: (state, status) => {
+      Vue.set(state, 'status', status)
+    },
+
     SET_LOCKED: (state, value) => {
       Vue.set(state, 'locked', true)
     },
@@ -142,6 +167,10 @@ const store = new Vuex.Store({
 
     RESET_RADIUS: (state) => {
       Vue.set(state, 'radius', null)
+    },
+
+    SET_EVENT: (state, event) => {
+      Vue.set(state, 'event', event)
     },
 
     SET_RSSI: (state, rssi) => {

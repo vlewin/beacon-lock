@@ -3,6 +3,8 @@ import VueRouter from 'vue-router'
 import ErrorPage from './components/ErrorPage.vue'
 import Calibration from './components/Calibration.vue'
 import Lock from './components/Lock.vue'
+import Radar from './components/Radar.vue'
+import Range from './components/Range.vue'
 
 Vue.use(VueRouter)
 
@@ -11,6 +13,8 @@ const router = new VueRouter({
   routes: [
     { path: '/', component: ErrorPage },
     { path: '/lock', component: Lock },
+    { path: '/radar', component: Radar },
+    { path: '/range', component: Range },
     { path: '/calibration', component: Calibration },
     { path: '*', redirect: '/' }
   ]

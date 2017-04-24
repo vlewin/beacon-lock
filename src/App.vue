@@ -1,11 +1,10 @@
 <template>
   <div id="app">
-    <router-view></router-view>
-
-    <router-link to="/calibration">Calibration</router-link>
-
+    <!-- <router-link to="/calibration">Calibration</router-link>
     <router-link to="/lock">Lock</router-link>
+    <router-link to="/radar">Radar</router-link> -->
 
+    <router-view></router-view>
   </div>
 </template>
 

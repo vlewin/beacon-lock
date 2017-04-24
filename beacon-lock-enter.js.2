@@ -1,0 +1,173 @@
+var noble = require('noble')
+var exec = require('child_process').exec
+require('events').EventEmitter.prototype._maxListeners = 100
+
+const WebSocket = require('ws')
+const WEBSOCKET = new WebSocket.Server({ perMessageDeflate: false, port: 2222 })
+
+var RSSI_THRESHOLD = -70
+var EXIT_GRACE_PERIOD = 5000 // milliseconds
+var MLE15 = '897208eb18994db4a18a53d1f4a46b50'
+var D15 = 'bc0cd8f62e2e4616a6b9fb2d53e6b83a'
+var D15N = '8163e8da48a2445bbe3090692274ff7e'
+var R2 = '2ee79432a6e14235bfb583ce370c1b8c'
+var NUT = 'd557f5c9bfc341abb689f48dbd9476ac'
+var PET = '0f69e91c6cf742e58bdbf04050e8caf3'
+var DEVICES = [D15, D15N, NUT, PET]
+// var CMD = '/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+
+var socket = null
+var inRange = []
+var values = []
+
+var nearby = { peripheral: null, count: 0 }
+
+function beep (qt = 1) {
+  var interval = 500
+  var timeout = (qt * interval) + interval
+  var beepInterval = setInterval(function () {
+    process.stdout.write('\u0007')
+  }, interval)
+
+  setTimeout(function () {
+    clearInterval(beepInterval)
+  }, timeout)
+}
+
+function say (message, callback = function () {}) {
+  exec(`say -v Tom "${message}"`, function () {
+    callback()
+  })
+}
+
+function send (event) {
+  if (socket && socket.readyState === socket.OPEN) {
+    socket.send(JSON.stringify(event))
+  }
+}
+
+function connect (callback) {
+  WEBSOCKET.on('connection', function connection (ws) {
+    console.log('WS: connection OPEN')
+    socket = ws
+
+    ws.on('message', function (data) {
+      var params = JSON.parse(data)
+
+      if (params.action === 'lock') {
+        console.log('LOCK MY MAC')
+        lock()
+      } else if (params.action === 'SET_RSSI_THRESHOLD') {
+        console.log('SET_RSSI_THRESHOLD')
+        setRssiTreshold(data.value)
+        console.log('Value', params)
+      }
+    })
+  })
+
+  WEBSOCKET.on('close', function () {
+    console.log('WS: Connection CLOSED')
+  })
+}
+
+noble.on('discover', function (peripheral) {
+  console.log(peripheral.uuid, peripheral.advertisement.localName)
+  if (DEVICES.includes(peripheral.uuid)) {
+    var id = peripheral.id
+    var name = peripheral.advertisement.localName.replace('00001', '')
+    var rssi = peripheral.rssi
+    // var entered = !inRange[id]
+    var entered = nearby.peripheral && nearby.count > 1
+
+    if (peripheral.rssi < RSSI_THRESHOLD) {
+      // ignore
+      console.log(new Date().toTimeString(), '-----', name, peripheral.uuid, peripheral.rssi, RSSI_THRESHOLD)
+      send({ event: 'data', name: name, rssi: rssi, accuracy: 0, proximity: '' })
+      return
+    }
+
+    if (entered) {
+      say('Enter')
+      beep(2)
+
+      inRange[id] = { peripheral: peripheral, count: count }
+      nearby = { peripheral: peripheral, count: nearby.count++ }
+
+      console.log(new Date().toTimeString(), '>>>>>', name, 'entered (RSSI', rssi, ') ')
+      send({ event: 'entered', name: 'D15' })
+
+      peripheral.connect(function (error) {
+        if (error) {
+          console.log(error)
+        }
+
+        peripheral.updateRssi(function (err, response) {
+          console.log(err, response)
+        })
+        console.log('CONNECTED')
+      })
+
+      // var message = `iBeacon ${name} entered the room, with signal strength ${rssi}`
+      // say(message)^
+    } else {
+      // inRange[id].lastSeen = Date.now()
+      // console.log(new Date(inRange[id].lastSeen).toTimeString(), 'Update lastSeen', name, peripheral.rssi)
+
+      send({ event: 'data', name: name, rssi: rssi, accuracy: 0, proximity: '' })
+    }
+
+    values.push(rssi)
+  }
+})
+
+setInterval(function () {
+  for (var id in inRange) {
+    console.log(new Date().toTimeString(), 'Check OK:', inRange[id].lastSeen > (Date.now() - EXIT_GRACE_PERIOD))
+
+    if (inRange[id].lastSeen < (Date.now() - EXIT_GRACE_PERIOD)) {
+      var peripheral = inRange[id].peripheral
+      var name = peripheral.advertisement.localName.replace('00001', '')
+      var rssi = peripheral.rssi
+
+      console.log(new Date().toTimeString(), '<<<<<', name, 'exited (RSSI', rssi, ') ')
+      send({ event: 'exited', name: 'D15' })
+      send({ event: 'data', name: name, rssi: rssi })
+
+      say('exited')
+      beep(4)
+      lock()
+
+      delete inRange[id]
+    }
+  }
+}, 1000)
+// }, RSSI_THRESHOLD / 2)
+
+function lock () {
+  console.log('lock function')
+  var countdown = 5
+  var interval = setInterval(function () {
+    countdown -= 1
+    console.log(countdown)
+    send({ event: 'countdown', value: countdown })
+  }, 1000)
+
+  var timeout = setTimeout(function () {
+    say('LOCKED')
+    send({ event: 'locked' })
+    clearInterval(interval)
+  }, 6000)
+}
+
+function setRssiTreshold (value) {
+  RSSI_THRESHOLD = value
+}
+
+noble.on('stateChange', function (state) {
+  if (state === 'poweredOn') {
+    noble.startScanning([], true)
+    connect()
+  } else {
+    noble.stopScanning()
+  }
+})
