@@ -1,10 +1,13 @@
 <template>
   <div id="lock">
+    <router-link to="/calibration">Calibration</router-link>
+    <router-link to="/range">Range</router-link>
+    <router-link to="/radar">Radar</router-link>
     <div class="container">
       <svg class="radar" width="100%" height="100%" viewBox="0 0 100 100">
-        <circle class="lock" cx="50" cy="50" v-bind:r="lockRadius" stroke="#666" stroke-dasharray="2" stroke-width="0.25" fill="transparent" />
+        <circle class="lock" cx="50" cy="50" v-bind:r="visibleRadius" stroke="#666" stroke-dasharray="2" stroke-width="0.25" fill="transparent" />
 
-        <circle class="lock" cx="50" cy="50" r="20" v-bind:stroke="color" stroke-width="0.75" fill="transparent" />
+        <circle class="lock" cx="50" cy="50" r="25" v-bind:stroke="color" stroke-width="0.95" fill="transparent" />
         <circle class="signal" cx="50" cy="50" v-bind:r="signal" fill="#555"  />
         <text class="text" x="50%" y="45%" dy=".3em" fill="#555" font-size="0.37rem">
           {{ status }}
@@ -22,15 +25,15 @@
       <div class="info">
         <p>
           <label>ACCURACY (ESTIMATED)</label>
-          <h2>{{ accuracy.toFixed(2) }}m ({{ proximity }})</h2>
+          <h2>{{ distance.toFixed(2) }}m ({{ proximity }})</h2>
         </p>
 
         <p>
           <label>LOCK RADIUS</label>
           <br>
           <h2>
-            {{ lockRadius }}
-            <input type="range" v-model="lockRadius" min="20" max="100" step="10">
+            {{ lockRadius }} {{ radius }}
+            <input type="range" v-model="radius" min="20" max="100" step="5">
           </h2>
         </p>
       </div>
@@ -48,6 +51,7 @@
         message: null,
         lockTimeout: null,
         lockCountDown: null,
+        radius: this.lockRadius,
         status: 'unlocked'
       }
     },
@@ -57,6 +61,9 @@
     },
 
     mounted () {
+      if (!this.connected) {
+        this.$router.push('/')
+      }
     },
 
     computed: {
@@ -68,12 +75,28 @@
         return this.signal >= this.lockRadius ? '#ff5252' : '#42b983'
       },
 
+      connected: function () {
+        return this.$store.state.connected
+      },
+
       accuracy: function () {
         return this.$store.state.accuracy
       },
 
       proximity: function () {
-        return this.$store.state.proximity
+        if (this.distance < 0) {
+          return 'N/A'
+        } else if (this.distance < 1) {
+          return 'immediate'
+        } else if (this.distance < 3) {
+          return 'near'
+        } else {
+          return 'far'
+        }
+      },
+
+      distance: function () {
+        return this.$store.state.distance
       },
 
       rssi: function () {
@@ -84,7 +107,7 @@
         return this.$store.state.rssi * -1
       },
 
-      lockRadius() {
+      lockRadius () {
         console.log(this.$store.state.radius)
         return this.$store.state.radius * -1
       },
@@ -94,7 +117,7 @@
       },
 
       visibleRadius: function () {
-        return this.lockRadius / 2
+        return this.lockRadius
       },
 
       locked: function () {
@@ -114,6 +137,18 @@
         } else if (!this.unlocked && (this.signal < this.lockRadius)) {
           console.info('Beacon nearby - Unlock and clear timeout and countdown')
           this.reset()
+        }
+      },
+
+      connected: function (val) {
+        if (!val) {
+          this.$router.push('/')
+        }
+      },
+
+      radius: function (val) {
+        if (val) {
+          this.$store.dispatch('setRadius', this.radius * -1)
         }
       }
     },

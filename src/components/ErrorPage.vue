@@ -55,7 +55,15 @@
 
       disconnected: function () {
         return !this.$store.state.connected
-      },
+      }
+    },
+
+    watch: {
+      connected: function (val) {
+        if (this.on && this.connected) {
+          this.$router.push('lock')
+        }
+      }
     }
   }
 </script>
