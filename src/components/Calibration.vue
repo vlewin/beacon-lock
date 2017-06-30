@@ -24,7 +24,7 @@
         <div v-if="running" class="beacon" v-on:click="stop">WAIT ...</div>
         <div v-else class="beacon" v-on:click="start">START</div>
 
-        <a href="#" class="beacon" v-on:click.stop.prevent="lock">LOCK</div>
+        <a href="#" class="beacon" v-on:click.stop.prevent="lock">LOCK</a></div>
 
       </div>
     </div>
