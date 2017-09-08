@@ -4,8 +4,8 @@ const Helpers = require('./helpers')
 const PERIPHERAL_NAME = 'nut'
 
 const TX_POWER = 20
-const SCAN_WINDOW = 2001
-const SAMPLING_RATE = 500
+const SCAN_WINDOW = 1000
+const SAMPLING_RATE = 250
 const DEBUG = false
 
 const WebSocketServer = require('ws').Server

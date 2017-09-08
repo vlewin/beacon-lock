@@ -6,7 +6,7 @@
       <!-- <div v-for="device in Object.keys(devices)">
         {{ device }} - {{ devices[device].values}}
       </div> -->
-      <svg width="100%" height="100%" viewBox="0 0 400 100">
+      <svg width="100%" height="80%" viewBox="0 0 400 100">
         <g v-for="(device, index) in Object.keys(devices)">
           <text v-bind:x="index*200" v-bind:y="0" font-family="Verdana" font-size="10">
             {{ device }}

@@ -32,7 +32,7 @@
           <label>LOCK RADIUS</label>
           <br>
           <h2>
-            {{ lockRadius }} {{ radius }}
+            {{ lockRadius }}
             <input type="range" v-model="radius" min="20" max="100" step="5">
           </h2>
         </p>
