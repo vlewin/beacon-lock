@@ -1,10 +1,14 @@
 import Vue from 'vue'
 import App from './App.vue'
 
+import store from './store'
+import router from './router'
+
 require('./assets/styles/application.css')
 require('./assets/styles/helpers.css')
 require('./assets/styles/no-connection.css')
 require('./assets/styles/calibration.css')
+require('./assets/styles/range.css')
 
 /* eslint-disable no-new */
 // new Vue({
@@ -12,8 +16,8 @@ require('./assets/styles/calibration.css')
 //   components: { App }
 // })
 
-export const ws = new WebSocket('ws://localhost:2222')
-
 new Vue({
+  store,
+  router,
   render: h => h(App)
 }).$mount('app')

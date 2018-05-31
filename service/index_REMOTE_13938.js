@@ -1,16 +1,20 @@
-var noble = require('noble')   // noble library
+const noble = require('noble') // noble library
+const Helpers = require('./helpers')
 
-var myPeripheral
+const PERIPHERAL_NAME = 'nut'
 
-const PERIPHERAL_NAME = 'MLE-15'
 const TX_POWER = 20
-const SCAN_WINDOW = 2000
+const SCAN_WINDOW = 1000
 const SAMPLING_RATE = 250
 const DEBUG = false
 
 const WebSocketServer = require('ws').Server
 const wss = new WebSocketServer({ port: 2222 })
 
+let samples = { rssi: [], dist: [] }
+let myPeripheral
+let scanInterval = null
+let samplingInterval = null
 let socket = null
 
 wss.on('connection', (ws) => {
@@ -25,7 +29,19 @@ wss.on('connection', (ws) => {
       if (data.event === 'calibrationn_start') {
         console.log('start calibration')
       } else if (data.event === 'disconneted') {
+        console.log('disconneted')
+      } else if (data.action === 'lock') {
+        console.log('LOCK NOW!')
+        var exec = require('child_process').exec
+        var cmd = 'say "Your Mac is locked!"'
+        exec(cmd, function (error, stdout, stderr) {
+          console.log(error, stdout, stderr)
+        })
 
+        cmd = '/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+        exec(cmd, function (error, stdout, stderr) {
+          console.log(error, stdout, stderr)
+        })
       } else {
         console.warn('Unknown event', data)
       }
@@ -73,7 +89,7 @@ function discoverPeripherals (peripheral) {
     // Connect to peripheral
     peripheral.connect(explorePeripheral)
   } else {
-    console.log('Found a different device:', name, 'with UUID ', peripheral.uuid)
+    console.log('Found different device:', name, 'with UUID ', peripheral.uuid)
   }
 };
 
@@ -84,34 +100,29 @@ function explorePeripheral (error) {
   }
 
   console.log('Connected to ' + myPeripheral.advertisement.localName)
-  var scanInterval = null
-  let rssiValues = []
-  let distanceValues = []
+  // eslint-disable
 
-  // console log signal strengh every second
-  setInterval(function () {
-    console.debug('New scan - clear scanInterval and re-init values')
-    clearInterval(scanInterval)
+  clearInterval(scanInterval)
+  scanInterval = setInterval(function () {
+    clearInterval(samplingInterval)
 
-    scanInterval = setInterval(function () {
-      updateRSSI(rssiValues, distanceValues)
+    samplingInterval = setInterval(function () {
+      updateRSSI()
     }, SAMPLING_RATE)
 
-    console.debug('Scann completed - calculate AVG of RSSI and distance')
-    calculateAVG(rssiValues, distanceValues)
-
-    console.debug('Clear RSSI and distance vales')
-    rssiValues = []
-    distanceValues = []
+    // console.log('Scann completed - calculate AVG of RSSI and distance')
+    if (samples.rssi.length && samples.dist.length) {
+      calculateAVG()
+    } else {
+      console.log('WARN: Nor RSSI data!')
+    }
   }, SCAN_WINDOW)
-
-  // setInterval(updateRSSI, 250);
 
   // when disconnected, run this function
   myPeripheral.on('disconnect', disconnectPeripheral)
 };
 
-function updateRSSI (rssiValues, distanceValues) {
+function updateRSSI () {
   myPeripheral.updateRssi(function (error, rssi) {
     if (error) {
       console.log(error)
@@ -121,11 +132,12 @@ function updateRSSI (rssiValues, distanceValues) {
     // rssi are always negative values
     if (rssi < 0) {
       const timestamp = new Date()
-      const distance = getDistance(TX_POWER, rssi)
-
+      const distance = Helpers.getDistance(rssi, TX_POWER)
+      // const proximity = Helpers.getProximity(rssi, TX_POWER)
+      // const range = Helpers.getRange(rssi, TX_POWER)
       console.log(timestamp, 'here is my RSSI: ' + rssi, 'distance', parseInt(distance), 'cm')
-      rssiValues.push(rssi)
-      distanceValues.push(distance)
+      samples.rssi.push(rssi)
+      samples.dist.push(distance)
     }
   })
 }
@@ -134,32 +146,17 @@ function disconnectPeripheral () {
   console.log('peripheral disconneted')
   sendEvent({ event: 'disconneted', name: PERIPHERAL_NAME })
 
-  // stop calling updateRSSI
-  clearInterval(updateRSSI)
+  clearInterval(scanInterval)
+  clearInterval(samplingInterval)
 
   // restart scan
   noble.startScanning()
 }
 
-// MATH HELPERS
-function avg (values) {
-  if (values.length) {
-    const sum = values.reduce(function (prev, next) { return prev + next })
-    return parseInt(sum / values.length)
-  }
-}
-
-function getDistance (txPower, rssi) {
-  const noice = 2 // in free space
-  var d = Math.pow(10, (txPower - rssi) / (10 * noice))
-  // console.log('D:', d, 'at RSSI:', rssi, 'with TxPower', txPower)
-  return d / 100
-}
-
-function calculateAVG (rssiValues, distanceValues) {
+function calculateAVG () {
   const timestamp = new Date()
-  const avgRssi = avg(rssiValues)
-  const avgDist = avg(distanceValues) / 100
+  const avgRssi = Helpers.avg(samples.rssi)
+  const avgDist = Helpers.avg(samples.dist) / 100
 
   console.log(timestamp, 'AVG RSSI: ' + avgRssi, 'AVG distance', avgDist, 'm')
   var event = {
@@ -170,6 +167,8 @@ function calculateAVG (rssiValues, distanceValues) {
     dist: avgDist
   }
 
+  // NOTE: Reset samples
+  samples = { rssi: [], dist: [] }
   sendEvent(event)
 }
 

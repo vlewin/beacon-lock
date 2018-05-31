@@ -1,0 +1,5 @@
+#range .signal {
+  opacity: 0.5;
+  transform-origin: center;
+  transition-duration: 1s;
+}

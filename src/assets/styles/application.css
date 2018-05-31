@@ -11,13 +11,20 @@ body {
   justify-content: center;
   text-align: center;
   flex-direction: column;
+  background-size: contain;
+}
+
+svg {
+  /*transform: scale(0.8);*/
+}
+.radar {
+  width: 100%;
 }
 
 .signal {
   opacity: 0.1;
-  transform: scale(1);
   transform-origin: center;
-  transition-duration: 1.1s;
+  transition-duration: 1s;
 }
 
 .text {

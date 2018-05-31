@@ -4,16 +4,21 @@
   "description": "Lock your Mac/PC with a bluetooth beacon",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "webpack-dev-server --inline --hot --config build/webpack.dev.config.js",
+    "start": "nodemon service/index.js",
+    "dev": "webpack-dev-server --host=0.0.0.0 --inline --hot --config build/webpack.dev.config.js",
     "build": "webpack --progress --hide-modules --config build/webpack.prod.config.js"
   },
   "dependencies": {
-    "noble": "^1.7.0",
+    "async": "^2.1.4",
+    "kalmanjs": "^1.0.0-beta",
+    "minew-minibeacon": "^1.0.0",
+    "noble": "^1.9.1",
     "noble-device": "^1.4.1",
     "nodemon": "^1.11.0",
     "vue": "^2.1.10",
-    "ws": "^2.0.2"
+    "vue-router": "^2.2.1",
+    "vuex": "^2.1.2",
+    "ws": "^2.1.0"
   },
   "devDependencies": {
     "babel-core": "^6.1.2",

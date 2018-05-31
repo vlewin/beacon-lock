@@ -1,7 +1,4 @@
 {
-  "ecmaFeatures": {
-      "jsx": true
-  },
   "env": {
     "browser": true,
     "node": true
@@ -15,7 +12,7 @@
   },
   "rules": {
     "no-useless-escape": 0,
-    "dot-notation": 2
-
+    "dot-notation": 2,
+    "no-const-assign": 1
   }
 }
