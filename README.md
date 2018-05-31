@@ -3,16 +3,20 @@
 
 ### Installation
 `npm install`
+
+### Start service and UI
 `npm start`
+`npm run dev`
 
 ### Packaging
 `npm run build`
 
 ### TODO:
 - [x] Init version
-- [ ] Lock once locked event is fired
+- [x] Lock once locked event is fired
+- [x] Improve stabilty
+- [x] Experiment with Kalman filter for RSSI signal smoothing
 - [ ] Electron UI
-- [ ] Improve stabilty
 - [ ] Packaging
 - [ ] Win/Mac install with “auto update” support =>  https://github.com/electron-userland/electron-builder
 
