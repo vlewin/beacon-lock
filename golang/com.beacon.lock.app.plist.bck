@@ -1,0 +1,19 @@
+<!--- Example blatantly ripped off from http://www.launchd.info/ -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>Label</key>
+		<string>com.beacon.lock.app</string>
+		<key>Program</key>
+		<string>/Users/vlewin/GitHub/beacon-lock/golang/beacon-lock</string>
+    <key>StandardOutPath</key><string>/tmp/beacon-log.log</string>
+    <key>StandardErrorPath</key><string>/tmp/beacon-log.err.log</string>
+		<key>RunAtLoad</key>
+		<true/>
+		<key>KeepAlive</key>
+    <true/>
+    <key>StartInterval</key>
+    <integer>10</integer>
+	</dict>
+</plist>
