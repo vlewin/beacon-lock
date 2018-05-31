@@ -1,5 +1,6 @@
 <template>
   <div id="calibration">
+    <router-link to="/lock">Lock</router-link>
     <div class="device">
       <img src="../assets/images/macbook.svg" />
     </div>
@@ -24,7 +25,7 @@
         <div v-if="running" class="beacon" v-on:click="stop">WAIT ...</div>
         <div v-else class="beacon" v-on:click="start">START</div>
 
-        <a href="#" class="beacon" v-on:click.stop.prevent="lock">LOCK</div>
+        <!-- <a href="#" class="beacon" v-on:click.stop.prevent="lock">LOCK</a></div> -->
 
       </div>
     </div>
@@ -58,13 +59,13 @@
     },
 
     computed: {
-      calibrated() {
+      calibrated () {
         return this.$store.state.calibrated
       },
 
-      average: function() {
-        if(this.values.length) {
-          return Math.round(this.values.reduce(function(prev, next) { return prev + next  }) / this.values.length)
+      average: function () {
+        if (this.values.length) {
+          return Math.round(this.values.reduce(function (prev, next) { return prev + next }) / this.values.length)
         }
 
         return 'N/A'
@@ -82,26 +83,25 @@
     },
 
     methods: {
-      start() {
+      start () {
         const _this = this
         this.running = true
         this.$store.dispatch('setCalibrated', false)
 
-        let interval = setInterval(function() {
+        const interval = setInterval(function () {
           _this.rssi = _this.$store.state.rssi
           _this.accuracy = _this.$store.state.accuracy
           _this.values.push(_this.rssi)
         }, 500)
 
-        setTimeout(function() {
+        setTimeout(function () {
           clearInterval(interval)
           _this.stop()
-        }, 5000)
-
+        }, 10000)
       },
 
-      stop() {
-        let _this = this
+      stop () {
+        const _this = this
 
         this.running = false
         this.radius = this.average + -10
@@ -112,14 +112,14 @@
         this.redirect()
       },
 
-      redirect() {
-        let _this = this
-        setTimeout(function() {
+      redirect () {
+        const _this = this
+        setTimeout(function () {
           _this.$router.push('lock')
         }, 3000)
       },
 
-      lock() {
+      lock () {
         this.$store.dispatch('lock')
       }
     }

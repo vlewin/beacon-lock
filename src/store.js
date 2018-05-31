@@ -15,6 +15,7 @@ const store = new Vuex.Store({
     radius: -65,
     rssi: 0,
     accuracy: 0,
+    distance: 0,
     event: null,
     proximity: 'N/A',
     status: 'N/A'
@@ -50,13 +51,13 @@ const store = new Vuex.Store({
           // router.push('/')
         } else if (data.event === 'data') {
           console.log(JSON.stringify(data))
-          // commit('CONNECTED')
-
-          // commit('CONNECTED')
+          commit('CONNECTED')
           commit('SET_EVENT', data)
           commit('SET_RSSI', data.rssi)
+          commit('SET_DISTANCE', data.dist)
+
           // commit('SET_ACCURACY', data.accuracy)
-          // commit('SET_PROXIMITY', data.proximity)
+          // commit('SET_PROXIMITY', data.dist)
         } else if (data.event === 'locked') {
           commit('SET_STATUS', 'locked')
         } else if (data.event === 'countdown') {
@@ -73,24 +74,25 @@ const store = new Vuex.Store({
         console.log('Socket closed')
         commit('OFF')
         commit('DISCONNECTED')
+        commit('RESET_SOCKET')
 
         // router.push('/')
-
-        setTimeout(function () {
-          dispatch('connect')
-        }, 3000)
+        // setTimeout(function () {
+        //   dispatch('connect')
+        // }, 3000)
       }
 
       socket.onclose = () => {
         console.log('Socket closed')
         commit('OFF')
         commit('DISCONNECTED')
+        commit('RESET_SOCKET')
 
         // router.push('/')
 
         console.log('reconnect in 3 seconds')
         setTimeout(function () {
-          // dispatch('connect')
+          dispatch('connect')
         }, 3000)
       }
     },
@@ -175,6 +177,10 @@ const store = new Vuex.Store({
 
     SET_RSSI: (state, rssi) => {
       Vue.set(state, 'rssi', rssi)
+    },
+
+    SET_DISTANCE: (state, distance) => {
+      Vue.set(state, 'distance', distance)
     },
 
     SET_ACCURACY: (state, accuracy) => {
