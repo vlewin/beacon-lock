@@ -6,96 +6,44 @@
 
   based on code provided by: Mattias Ask (http://www.dittlof.com)
 */
+
 var noble = require('noble')
 var exec = require('child_process').exec
 
 var RSSI_THRESHOLD = -65
-var EXIT_GRACE_PERIOD = 5000 // milliseconds
+var EXIT_GRACE_PERIOD = 10000 // milliseconds
+
 var MLE15 = '897208eb18994db4a18a53d1f4a46b50'
 var D15 = 'bc0cd8f62e2e4616a6b9fb2d53e6b83a'
-var D152 = '8163e8da48a2445bbe3090692274ff7e'
-
+var MINEW = '8163e8da48a2445bbe3090692274ff7e'
+var XIAOMI = '0f69e91c6cf742e58bdbf04050e8caf3'
 var R2 = '2ee79432a6e14235bfb583ce370c1b8c'
-var DEVICES = [MLE15, D15, D152]
+var DEVICES = [MINEW, XIAOMI]
 // var CMD = '/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend'
 
 var inRange = []
 
-function say (message, callback) {
-  exec(`say -v Tom "${message}"`, function () {
-    callback()
-  })
+
+console.debug = function() {
+  if(process.env.DEBUG) {
+    console.log.apply(console, arguments);
+  }
 }
 
-noble.on('discover', function (peripheral) {
-  if (DEVICES.includes(peripheral.uuid)) {
-    if (peripheral.rssi < RSSI_THRESHOLD) {
-      // ignore
-      return
-    }
+function sysinfo() {
+  var used = process.memoryUsage().heapUsed / 1024 / 1024;
+  console.log(`Total system memory: ${Math.round(used * 100) / 100} MB`);
+}
 
-    var id = peripheral.id
-    var name = peripheral.advertisement.localName.trim()
-    var rssi = peripheral.rssi
-    var entered = !inRange[id]
+function say (message, callback) {
+  callback()
+  exec(`say -v Tom "${message}"`, () => {
+    // callback()
+  })
 
-    if (entered) {
-      inRange[id] = {
-        peripheral: peripheral
-      }
+  // callback()
 
-      var message = `iBeacon ${name} entered the room, with signal strength ${rssi}`
-
-      console.log('"' + name + '" entered (RSSI ' + rssi + ') ' + new Date())
-      say(message, function () {
-        console.log('"' + name + '" entered (RSSI ' + rssi + ') ' + new Date())
-      })
-
-      // messages.forEach(function (message) {
-      //   say(message, function () {
-      //     console.log('remove', message, 'and next')
-      //     messages.splice(messages.indexOf(message), 1)
-      //     say(message)
-      //   })
-      // })
-
-      // exec(`say -v Tom "${message}"`, function () {
-      //   console.log('"' + name + '" entered (RSSI ' + rssi + ') ' + new Date())
-      //   messages.splice(messages.indexOf(message), 1)
-      // })
-
-      // messages.forEach(function (message) {
-      //   setTimeout(function () {
-      //     exec(`say -v Tom "${message}"`, function () {
-      //       console.log('"' + name + '" entered (RSSI ' + rssi + ') ' + new Date())
-      //       messages.splice(messages.indexOf(message), 1)
-      //     })
-      //   }, 1000)
-      // })
-    } else {
-      // console.log('Update lastSeen', name, new Date(inRange[id].lastSeen), peripheral.rssi)
-      inRange[id].lastSeen = Date.now()
-    }
-  }
-})
-
-setInterval(function () {
-  for (var id in inRange) {
-    if (inRange[id].lastSeen < (Date.now() - EXIT_GRACE_PERIOD)) {
-      var peripheral = inRange[id].peripheral
-      var id = peripheral.id
-      var name = peripheral.advertisement.localName
-      var rssi = peripheral.rssi
-
-      var message = `iBeacon ${name} exited the room, with signal strength ${rssi}`
-      exec(`say -v Tom "${message}"`, function () {
-        console.log('"' + peripheral.advertisement.localName + '" exited (RSSI ' + peripheral.rssi + ') ' + new Date())
-      })
-
-      delete inRange[id]
-    }
-  }
-}, EXIT_GRACE_PERIOD / 2)
+}
 
 noble.on('stateChange', function (state) {
   if (state === 'poweredOn') {
@@ -104,3 +52,71 @@ noble.on('stateChange', function (state) {
     noble.stopScanning()
   }
 })
+
+noble.on('discover', discovery)
+
+function discovery(peripheral) {
+  if (DEVICES.includes(peripheral.uuid)) {
+    // console.log('*** Discovered', peripheral.advertisement.localName)
+    var id = peripheral.id
+    var name = peripheral.advertisement.localName.trim().split('_')[0]
+    var rssi = peripheral.rssi
+    var entered = !inRange[id]
+    const now = new Date().toLocaleTimeString()
+
+
+
+    // console.debug(`[${rssi}] ??? ${now}: seen`)
+
+    if (rssi < RSSI_THRESHOLD) {
+      console.debug(`[${now}](${rssi}): OUT OF RANGE`)
+      // ignore
+      return
+    }
+
+    if (!inRange[id]) {
+
+      var message = `NodeJs: ${name} entered`
+      say(message, () => {
+        console.log(`[${now}](${rssi}): >> ${message}`)
+      })
+    }
+
+    inRange[id] = { name: name, rssi: rssi, lastSeen: Date.now() }
+    console.debug(`[${now}](${rssi}): IN RANGE`)
+    sysinfo()
+  }
+}
+
+setInterval(function () {
+  for (var id in inRange) {
+    peripheral = inRange[id]
+    var name = peripheral.name
+    var rssi = peripheral.rssi
+    const lastSeen = peripheral.lastSeen
+    const leavesAt = lastSeen + EXIT_GRACE_PERIOD
+    const time = new Date()
+    const now = time.toLocaleTimeString()
+    const diff = (time - new Date(lastSeen)) / 1000
+
+
+    if (time.getTime() > leavesAt) {
+      var message = `NodeJs: ${name} exited`
+
+      say(message, () => {
+        console.log(`[${now}](${rssi}): << ${message}`)
+      })
+
+      // exec(`say -v Tom "${message}"`, function () {
+      //   console.log(new Date(), '<<<', message)
+      // })
+
+      delete inRange[id]
+
+      // NOTE: Debug stop
+      // process.exit()
+    } else {
+      console.debug(`[${now}](${rssi}): SEEN ${diff} s ago`)
+    }
+  }
+}, EXIT_GRACE_PERIOD/2)

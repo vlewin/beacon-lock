@@ -3,7 +3,7 @@ var noble = require('noble')   // noble library
 var myPeripheral
 
 // const PERIPHERAL_NAME = 'BeaconLock00001'
-const PERIPHERAL_NAME = 'nut'
+const PERIPHERAL_NAME = 'Minew_00001'
 
 const TX_POWER = 20
 const SCAN_WINDOW = 1000

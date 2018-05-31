@@ -10,7 +10,8 @@ var MLE15 = '897208eb18994db4a18a53d1f4a46b50'
 var D15 = 'bc0cd8f62e2e4616a6b9fb2d53e6b83a'
 var D15N = '8163e8da48a2445bbe3090692274ff7e'
 var R2 = '2ee79432a6e14235bfb583ce370c1b8c'
-var DEVICES = [D15, D15N]
+var Xiaomi = '0f69e91c6cf742e58bdbf04050e8caf3'
+var DEVICES = [D15, D15N, Xiaomi]
 // var CMD = '/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend'
 
 var socket = null
